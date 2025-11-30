@@ -25,61 +25,37 @@ Build the **first privacy-preserving cross-chain bridge** that:
 
 ---
 
-## 📋 Implementation Roadmap
+## 📋 Implementation Status
 
-### Phase 1: Core Infrastructure ✅ (Completed)
+### Phase 1: Core Infrastructure ✅
 - [x] BLAKE2b circuit (for Zcash PoW verification)
 - [x] SHA256d circuit (for Merkle trees)
 - [x] Merkle tree verification circuit
 - [x] Zcash transaction hash verification (ZIP-244)
+- [x] ZCLAIM mint/burn proof circuits
 
-### Phase 2: Starknet Setup 🔄 (In Progress)
-- [ ] Cairo project initialization (Scarb)
-- [ ] wZEC token contract (ERC20-like)
-- [ ] Basic contract structure
+### Phase 2: Starknet Contracts ✅
+- [x] Cairo project with Scarb
+- [x] wZEC token contract (ERC20)
+- [x] Relay system (block header storage)
+- [x] Vault registry (collateral management)
+- [x] Bridge contracts (zclaim, mint, burn)
+- [x] Crypto primitives (blake2b, merkle - placeholders)
 
-### Phase 3: Relay System (Cairo)
-- [ ] Zcash block header storage
-- [ ] Block header parsing
-- [ ] `hashFinalSaplingRoot` extraction
-- [ ] Chain tip tracking
-- [ ] Confirmation depth checking
+> ⚠️ Some Cairo modules need manual review for Cairo 2.8 compatibility
 
-### Phase 4: Vault System (Cairo)
-- [ ] Vault registry contract
-- [ ] Collateral management (lock/unlock STRK)
-- [ ] Vault state tracking
-- [ ] Balance commitment storage
+### Phase 3: CLI & Services ✅
+- [x] `zclaim` CLI (relay, issue, redeem, vault, config, status)
+- [x] Relay service (Node.js daemon)
+- [x] Deployment scripts
 
-### Phase 5: Cryptographic Primitives (Cairo)
-- [ ] BLAKE2b-256 implementation
-- [ ] BLAKE2s-256 implementation
-- [ ] Pedersen hash (Starknet native)
-- [ ] Merkle proof verification
-- [ ] Value commitments
+### Phase 4: Testing & Deployment 🔄
+- [x] Integration test script
+- [ ] Unit tests for Cairo contracts
+- [ ] End-to-end testing
+- [ ] Testnet deployment
 
-### Phase 6: ZCLAIM Core Logic (Cairo)
-- [ ] `request_lock()` - Issue lock permit
-- [ ] `mint()` - Submit mint transaction
-- [ ] `confirm_issue()` - Vault confirms note receipt
-- [ ] `challenge_issue()` - Dispute bad encryption
-- [ ] `burn()` - Submit burn transaction
-- [ ] `confirm_redeem()` - Vault proves note release
-- [ ] `challenge_redeem()` - Dispute bad encryption
-
-### Phase 7: Privacy Enhancement
-- [ ] Splitting strategy (base-2 denominations)
-- [ ] Multi-vault transaction routing
-- [ ] Randomized shielded addresses
-
-### Phase 8: CLI Tools
-- [ ] `zclaim-cli` command-line interface
-- [ ] Vault management commands
-- [ ] Issue/Redeem transaction commands
-- [ ] Proof generation utilities
-- [ ] Wallet integration scripts
-
-> **Note:** This project focuses on the **terminal/CLI version only**. No UI/UX frontend is planned for the initial implementation.
+> **Note:** This project focuses on the **terminal/CLI version only**. No UI/UX frontend is planned.
 
 ---
 
@@ -92,17 +68,22 @@ Build the **first privacy-preserving cross-chain bridge** that:
 │                                                                             │
 │  ┌─────────────┐         ┌──────────────────┐         ┌─────────────────┐  │
 │  │   ZCASH     │         │    RELAY         │         │   STARKNET      │  │
-│  │  (Backing)  │◄───────►│    SYSTEM        │◄───────►│   (Issuing)     │  │
-│  │             │         │    (Cairo)       │         │                 │  │
+│  │  (Backing)  │◄───────►│    SERVICE       │◄───────►│   (Issuing)     │  │
+│  │             │         │    (Node.js)     │         │                 │  │
 │  └─────────────┘         └──────────────────┘         └─────────────────┘  │
-│        │                        │                            │              │
 │        │                        │                            │              │
 │        ▼                        ▼                            ▼              │
 │  ┌─────────────┐         ┌──────────────────┐         ┌─────────────────┐  │
-│  │  Shielded   │         │  Block Headers   │         │  Vault Registry │  │
-│  │  Notes      │         │  + Sapling Roots │         │  + wZEC Token   │  │
+│  │  Shielded   │         │  RelaySystem     │         │  VaultRegistry  │  │
+│  │  Notes      │         │  (Cairo)         │         │  + wZEC Token   │  │
 │  └─────────────┘         └──────────────────┘         └─────────────────┘  │
-│                                                                             │
+│                                  │                            │              │
+│                                  └────────────┬───────────────┘              │
+│                                               ▼                              │
+│                                  ┌──────────────────┐                        │
+│                                  │   ZclaimBridge   │                        │
+│                                  │   (Cairo)        │                        │
+│                                  └──────────────────┘                        │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -112,113 +93,69 @@ Build the **first privacy-preserving cross-chain bridge** that:
 
 ```
 ztarknet/
-├── cairo/                           # Starknet contracts (Cairo)
-│   ├── Scarb.toml                  # Cairo package manager config
+├── cairo/                           # Starknet contracts (Cairo 2.8)
+│   ├── Scarb.toml                  # Package config
 │   ├── src/
 │   │   ├── lib.cairo               # Main library
-│   │   ├── token/
-│   │   │   └── wzec.cairo          # wZEC ERC20 token
+│   │   ├── token/wzec.cairo        # ✅ wZEC ERC20 token
 │   │   ├── relay/
-│   │   │   ├── relay_system.cairo  # Block header relay
-│   │   │   └── types.cairo         # Relay data types
+│   │   │   ├── relay_system.cairo  # ✅ Block header relay
+│   │   │   └── types.cairo         # ✅ Data types
 │   │   ├── vault/
-│   │   │   ├── registry.cairo      # Vault registry
-│   │   │   └── types.cairo         # Vault data types
+│   │   │   ├── registry.cairo      # 🔲 Vault registry (needs review)
+│   │   │   └── types.cairo         # 🔲 Vault types (needs review)
 │   │   ├── bridge/
-│   │   │   ├── zclaim.cairo        # Main bridge logic
-│   │   │   ├── mint.cairo          # Mint transfer handler
-│   │   │   └── burn.cairo          # Burn transfer handler
+│   │   │   ├── zclaim.cairo        # 🔲 Main bridge (needs review)
+│   │   │   ├── mint.cairo          # 🔲 Issue helpers (needs review)
+│   │   │   └── burn.cairo          # 🔲 Redeem helpers (needs review)
 │   │   └── crypto/
-│   │       ├── blake2b.cairo       # BLAKE2b hash
-│   │       ├── blake2s.cairo       # BLAKE2s hash
-│   │       └── merkle.cairo        # Merkle proofs
-│   └── tests/
+│   │       ├── blake2b.cairo       # 🔲 BLAKE2b (placeholder)
+│   │       └── merkle.cairo        # 🔲 Merkle proofs (placeholder)
+│   └── scripts/
+│       └── deploy.sh               # ✅ Deployment script
 │
-├── circom/                          # Zero-knowledge circuits (for off-chain proofs)
-│   ├── circuits/
-│   │   ├── blake2b.circom          # ✅ BLAKE2b-256 hash
-│   │   ├── sha256d.circom          # ✅ Double SHA256
-│   │   ├── merkle_tree.circom      # ✅ Merkle proof verification
-│   │   ├── zcash_tx.circom         # ✅ ZIP-244 tx hash
-│   │   └── zclaim/                 # 🔲 ZCLAIM-specific circuits
-│   │       ├── mint_proof.circom
-│   │       └── burn_proof.circom
-│   ├── preprocessing_scripts/
-│   ├── production_scripts/
-│   └── tests/
+├── cli/                             # ✅ Command-line interface
+│   ├── package.json
+│   └── src/
+│       ├── index.js                # Main entry point
+│       ├── config.js               # Configuration
+│       ├── commands/
+│       │   ├── relay.js            # Block header relay commands
+│       │   ├── issue.js            # ZEC→wZEC commands
+│       │   ├── redeem.js           # wZEC→ZEC commands
+│       │   ├── vault.js            # Vault operator commands
+│       │   ├── config.js           # CLI configuration
+│       │   └── status.js           # Status checking
+│       └── utils/
+│           ├── starknet.js         # Starknet helpers
+│           └── zcash.js            # Zcash RPC helpers
 │
-├── cli/                             # 🔲 Command-line interface
-│   ├── src/
-│   └── Cargo.toml
+├── relay-service/                   # ✅ Relay daemon
+│   ├── package.json
+│   └── src/
+│       ├── index.js                # Main service
+│       ├── zcash-client.js         # Zcash RPC client
+│       ├── starknet-relay.js       # Starknet contract client
+│       └── header-processor.js     # Header parsing/encoding
+│
+├── circom/                          # ✅ ZK circuits
+│   └── circuits/
+│       ├── blake2b.circom          # ✅ BLAKE2b-256
+│       ├── sha256d.circom          # ✅ Double SHA256
+│       ├── merkle_tree.circom      # ✅ Merkle verification
+│       ├── zcash_tx.circom         # ✅ ZIP-244 tx hash
+│       ├── zclaim_mint.circom      # ✅ Mint proof circuit
+│       └── zclaim_burn.circom      # ✅ Burn proof circuit
+│
+├── scripts/
+│   └── integration_test.sh         # ✅ Integration test runner
 │
 ├── research/                        # Protocol documentation
-│   ├── ZCLAIM_PROTOCOL.md          # ✅ Full protocol spec
-│   ├── ZCASH_EXPLAINED.md          # ✅ Zcash fundamentals
-│   └── ...
+│   ├── ZCLAIM_PROTOCOL.md          # Full protocol spec
+│   └── ZCASH_EXPLAINED.md          # Zcash fundamentals
 │
-├── solidity/                        # Legacy Ethereum contracts (reference)
-│
-└── util/                            # Helper scripts
+└── solidity/                        # Legacy/reference contracts
 ```
-
----
-
-## 🔧 Technical Stack
-
-### Starknet (Cairo)
-- **Language:** Cairo 1.0+
-- **Package Manager:** Scarb
-- **Testing:** Cairo Test
-- **Deployment:** Starkli
-
-### Off-chain Proofs (Circom)
-- **Proof System:** Groth16 / PLONK
-- **Prover:** snarkjs
-- **Verifier:** Generated Cairo contract
-
-### CLI (Rust)
-- **Framework:** Clap
-- **Starknet SDK:** starknet-rs
-- **Zcash SDK:** zcash_client_backend
-
----
-
-## 🔧 Cryptographic Primitives
-
-| Primitive | Purpose | Implementation |
-|:----------|:--------|:---------------|
-| **BLAKE2b-256** | Zcash PoW, personalized hashes | Cairo + Circom ✅ |
-| **BLAKE2s-256** | Note commitments | Cairo 🔲 |
-| **SHA256d** | Merkle trees | Circom ✅ |
-| **Pedersen Hash** | Starknet native commitments | Cairo native ✅ |
-| **Poseidon Hash** | Efficient ZK hashing | Cairo native ✅ |
-
----
-
-## 📚 Resources
-
-### Protocol Documentation
-- [ZCLAIM Protocol Specification](./research/ZCLAIM_PROTOCOL.md)
-- [Zcash Explained](./research/ZCASH_EXPLAINED.md)
-- [Original Thesis](./research/confidential_exchanges.txt)
-- [XCLAIM Paper](./research/xclaim.txt)
-
-### Starknet & Cairo
-- [Cairo Book](https://book.cairo-lang.org/)
-- [Starknet Documentation](https://docs.starknet.io/)
-- [Scarb Package Manager](https://docs.swmansion.com/scarb/)
-- [OpenZeppelin Cairo Contracts](https://github.com/OpenZeppelin/cairo-contracts)
-- [Starknet Foundry](https://foundry-rs.github.io/starknet-foundry/)
-
-### Zcash References
-- [Zcash Protocol Spec (Sapling)](https://zips.z.cash/protocol/protocol.pdf)
-- [ZIP-244: Transaction Identifier](https://zips.z.cash/zip-0244)
-- [Jubjub Curve Spec](https://z.cash/technology/jubjub/)
-
-### Libraries & Tools
-- [circom](https://docs.circom.io/) - Circuit compiler
-- [snarkjs](https://github.com/iden3/snarkjs) - Groth16 prover/verifier
-- [starknet-rs](https://github.com/xJonathanLEI/starknet-rs) - Rust SDK
 
 ---
 
@@ -233,48 +170,109 @@ curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh
 curl https://get.starkli.sh | sh
 starkliup
 
-# Install Starknet Foundry (testing)
-curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | sh
-snfoundryup
-
-# Install Node.js dependencies (for circom)
-npm install
-
-# Install circom (Rust)
-curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
-git clone https://github.com/iden3/circom.git
-cd circom && cargo build --release
+# Install Node.js (v18+)
+# https://nodejs.org/
 ```
 
 ### Build & Test
 ```bash
+# Run integration tests (builds everything)
+./scripts/integration_test.sh
+
+# Or manually:
+
 # Build Cairo contracts
 cd cairo && scarb build
 
-# Run Cairo tests
-scarb test
+# Install CLI
+cd cli && npm install
 
-# Compile circom circuits
-cd circom && ./preprocessing_scripts/1_compile_circom.sh
+# Install relay service
+cd relay-service && npm install
 ```
 
-### Deploy (Testnet)
+### Configure CLI
 ```bash
-# Set up account
-starkli account deploy --network sepolia
+cd cli
+node src/index.js config init
+```
+
+### Deploy to Testnet
+```bash
+# Set up Starknet account first
+starkli account oz init ~/.starkli-wallets/deployer
 
 # Deploy contracts
-cd cairo && scarb run deploy
+cd cairo && ./scripts/deploy.sh sepolia
+```
+
+### Run Relay Service
+```bash
+cd relay-service
+cp .env.example .env
+# Edit .env with your configuration
+npm start
 ```
 
 ---
 
-## 🔐 Security Considerations
+## 📖 CLI Usage
 
-1. **Vault Collateralization**: Vaults must maintain `σstd ≥ 1.5` collateral ratio
-2. **Challenge Periods**: Users have `∆confirmIssue` time to dispute
-3. **Splitting Strategy**: Use base-2 denominations to hide total amounts from vaults
-4. **Relay Security**: Require `k ≥ 6` block confirmations
+```bash
+# Main help
+zclaim --help
+
+# Check bridge status
+zclaim status bridge
+zclaim status health
+
+# Issue: ZEC → wZEC
+zclaim issue vaults              # List available vaults
+zclaim issue request -v 0x... -a 1.5   # Request lock permit
+zclaim issue lock <nonce>        # Lock ZEC on Zcash
+zclaim issue mint <nonce>        # Claim wZEC on Starknet
+zclaim issue status <nonce>      # Check status
+
+# Redeem: wZEC → ZEC
+zclaim redeem request -a 1.5 -t zs1...  # Burn wZEC, request release
+zclaim redeem status <nonce>     # Check status
+zclaim redeem claim <nonce>      # Claim collateral if timeout
+
+# Vault operations (for operators)
+zclaim vault register -z zs1... -c 10   # Register vault
+zclaim vault deposit 5           # Add collateral
+zclaim vault status              # Check vault status
+zclaim vault pending             # List pending operations
+zclaim vault confirm-issue <nonce>      # Confirm issue
+zclaim vault release <nonce>     # Release ZEC for redeem
+
+# Relay operations
+zclaim relay status              # Check relay status
+zclaim relay submit <height>     # Submit single block
+zclaim relay sync -s 100 -e 200  # Sync block range
+```
+
+---
+
+## 🔧 Technical Stack
+
+| Component | Technology |
+|:----------|:-----------|
+| Smart Contracts | Cairo 2.8 (Starknet) |
+| Package Manager | Scarb 2.8.4 |
+| CLI | Node.js + Commander |
+| Relay Service | Node.js + starknet.js |
+| ZK Circuits | Circom + snarkjs |
+| Deployment | Starkli |
+
+---
+
+## 🔐 Security Notes
+
+1. **Collateral**: Vaults must maintain ≥150% collateralization
+2. **Confirmations**: 20 Zcash block confirmations required
+3. **Timeouts**: 24h for issue, 24h for redeem
+4. **Challenge**: Vaults can dispute bad encryption proofs
 
 ---
 
@@ -286,9 +284,9 @@ ISC
 
 ## 🤝 Contributing
 
-1. Pick an item from the roadmap
-2. Create a feature branch
-3. Implement with tests
+1. Review Cairo contracts in `cairo/src/` (some need fixes)
+2. Implement proper BLAKE2b in Cairo
+3. Add unit tests
 4. Submit PR
 
 ---
