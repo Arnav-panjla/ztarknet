@@ -76,9 +76,10 @@ pub mod tx_limits {
 }
 
 /// Vault status enum
-#[derive(Drop, Serde, starknet::Store, PartialEq)]
+#[derive(Drop, Copy, Serde, starknet::Store, PartialEq, Default)]
 pub enum VaultStatus {
     /// Vault is not registered
+    #[default]
     Unregistered,
     /// Vault is active and accepting requests
     Active,

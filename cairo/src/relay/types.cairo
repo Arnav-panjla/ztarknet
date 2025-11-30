@@ -90,9 +90,10 @@ pub struct BurnTransfer {
 }
 
 /// Issue request status
-#[derive(Drop, Serde, starknet::Store, PartialEq)]
+#[derive(Drop, Copy, Serde, starknet::Store, PartialEq, Default)]
 pub enum IssueStatus {
     /// No request exists
+    #[default]
     None,
     /// Waiting for user to submit mint transaction
     AwaitingMint,
@@ -107,9 +108,10 @@ pub enum IssueStatus {
 }
 
 /// Redeem request status
-#[derive(Drop, Serde, starknet::Store, PartialEq)]
+#[derive(Drop, Copy, Serde, starknet::Store, PartialEq, Default)]
 pub enum RedeemStatus {
     /// No request exists
+    #[default]
     None,
     /// Burn submitted, waiting for vault to release ZEC
     AwaitingRelease,

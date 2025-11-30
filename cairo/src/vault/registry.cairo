@@ -55,7 +55,6 @@ pub mod VaultRegistry {
         StoragePointerReadAccess, StoragePointerWriteAccess,
         Map, StoragePathEntry
     };
-    use core::num::traits::Zero;
     use zclaim::vault::types::{Vault, VaultRegistration, BalanceProof, VaultStatus, collateral};
 
     #[storage]
