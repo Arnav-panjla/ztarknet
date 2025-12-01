@@ -6,7 +6,7 @@ Based on the [ZCLAIM Protocol](./research/ZCLAIM_PROTOCOL.md) from the ETH Züri
 
 ---
 
-## 🎯 Project Goal
+## Project Goal
 
 Build the **first privacy-preserving cross-chain bridge** that:
 - Locks shielded ZEC on Zcash → Mints wZEC (wrapped ZEC) on Starknet
@@ -25,16 +25,16 @@ Build the **first privacy-preserving cross-chain bridge** that:
 
 ---
 
-## 📋 Implementation Status
+## Implementation Status
 
-### Phase 1: Core Infrastructure ✅
+### Phase 1: Core Infrastructure 
 - [x] BLAKE2b circuit (for Zcash PoW verification)
 - [x] SHA256d circuit (for Merkle trees)
 - [x] Merkle tree verification circuit
 - [x] Zcash transaction hash verification (ZIP-244)
 - [x] ZCLAIM mint/burn proof circuits
 
-### Phase 2: Starknet Contracts ✅
+### Phase 2: Starknet Contracts 
 - [x] Cairo project with Scarb
 - [x] wZEC token contract (ERC20)
 - [x] Relay system (block header storage)
@@ -42,14 +42,14 @@ Build the **first privacy-preserving cross-chain bridge** that:
 - [x] Bridge contracts (zclaim, mint, burn)
 - [x] Crypto primitives (blake2b, merkle - placeholders)
 
-> ⚠️ Some Cairo modules need manual review for Cairo 2.8 compatibility
+> Some Cairo modules need manual review for Cairo 2.8 compatibility
 
-### Phase 3: CLI & Services ✅
+### Phase 3: CLI & Services 
 - [x] `zclaim` CLI (relay, issue, redeem, vault, config, status)
 - [x] Relay service (Node.js daemon)
 - [x] Deployment scripts
 
-### Phase 4: Testing & Deployment 🔄
+### Phase 4: Testing & Deployment 
 - [x] Integration test script
 - [ ] Unit tests for Cairo contracts
 - [ ] End-to-end testing
@@ -59,7 +59,7 @@ Build the **first privacy-preserving cross-chain bridge** that:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -89,7 +89,7 @@ Build the **first privacy-preserving cross-chain bridge** that:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ztarknet/
@@ -97,24 +97,24 @@ ztarknet/
 │   ├── Scarb.toml                  # Package config
 │   ├── src/
 │   │   ├── lib.cairo               # Main library
-│   │   ├── token/wzec.cairo        # ✅ wZEC ERC20 token
+│   │   ├── token/wzec.cairo        #  wZEC ERC20 token
 │   │   ├── relay/
-│   │   │   ├── relay_system.cairo  # ✅ Block header relay
-│   │   │   └── types.cairo         # ✅ Data types
+│   │   │   ├── relay_system.cairo  #  Block header relay
+│   │   │   └── types.cairo         #  Data types
 │   │   ├── vault/
-│   │   │   ├── registry.cairo      # 🔲 Vault registry (needs review)
-│   │   │   └── types.cairo         # 🔲 Vault types (needs review)
+│   │   │   ├── registry.cairo      #  Vault registry (needs review)
+│   │   │   └── types.cairo         #  Vault types (needs review)
 │   │   ├── bridge/
-│   │   │   ├── zclaim.cairo        # 🔲 Main bridge (needs review)
-│   │   │   ├── mint.cairo          # 🔲 Issue helpers (needs review)
-│   │   │   └── burn.cairo          # 🔲 Redeem helpers (needs review)
+│   │   │   ├── zclaim.cairo        #  Main bridge (needs review)
+│   │   │   ├── mint.cairo          #  Issue helpers (needs review)
+│   │   │   └── burn.cairo          #  Redeem helpers (needs review)
 │   │   └── crypto/
-│   │       ├── blake2b.cairo       # 🔲 BLAKE2b (placeholder)
-│   │       └── merkle.cairo        # 🔲 Merkle proofs (placeholder)
+│   │       ├── blake2b.cairo       #  BLAKE2b (placeholder)
+│   │       └── merkle.cairo        # Merkle proofs (placeholder)
 │   └── scripts/
-│       └── deploy.sh               # ✅ Deployment script
+│       └── deploy.sh               #  Deployment script
 │
-├── cli/                             # ✅ Command-line interface
+├── cli/                             #  Command-line interface
 │   ├── package.json
 │   └── src/
 │       ├── index.js                # Main entry point
@@ -130,7 +130,7 @@ ztarknet/
 │           ├── starknet.js         # Starknet helpers
 │           └── zcash.js            # Zcash RPC helpers
 │
-├── relay-service/                   # ✅ Relay daemon
+├── relay-service/                   # Relay daemon
 │   ├── package.json
 │   └── src/
 │       ├── index.js                # Main service
@@ -138,17 +138,17 @@ ztarknet/
 │       ├── starknet-relay.js       # Starknet contract client
 │       └── header-processor.js     # Header parsing/encoding
 │
-├── circom/                          # ✅ ZK circuits
+├── circom/                          #  ZK circuits
 │   └── circuits/
-│       ├── blake2b.circom          # ✅ BLAKE2b-256
-│       ├── sha256d.circom          # ✅ Double SHA256
-│       ├── merkle_tree.circom      # ✅ Merkle verification
-│       ├── zcash_tx.circom         # ✅ ZIP-244 tx hash
-│       ├── zclaim_mint.circom      # ✅ Mint proof circuit
-│       └── zclaim_burn.circom      # ✅ Burn proof circuit
+│       ├── blake2b.circom          #  BLAKE2b-256
+│       ├── sha256d.circom          #  Double SHA256
+│       ├── merkle_tree.circom      #  Merkle verification
+│       ├── zcash_tx.circom         #  ZIP-244 tx hash
+│       ├── zclaim_mint.circom      #  Mint proof circuit
+│       └── zclaim_burn.circom      #  Burn proof circuit
 │
 ├── scripts/
-│   └── integration_test.sh         # ✅ Integration test runner
+│   └── integration_test.sh         #  Integration test runner
 │
 ├── research/                        # Protocol documentation
 │   ├── ZCLAIM_PROTOCOL.md          # Full protocol spec
@@ -159,7 +159,7 @@ ztarknet/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 ```bash
@@ -170,8 +170,6 @@ curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh
 curl https://get.starkli.sh | sh
 starkliup
 
-# Install Node.js (v18+)
-# https://nodejs.org/
 ```
 
 ### Build & Test
@@ -216,7 +214,7 @@ npm start
 
 ---
 
-## 📖 CLI Usage
+## CLI Usage
 
 ```bash
 # Main help
@@ -254,20 +252,7 @@ zclaim relay sync -s 100 -e 200  # Sync block range
 
 ---
 
-## 🔧 Technical Stack
-
-| Component | Technology |
-|:----------|:-----------|
-| Smart Contracts | Cairo 2.8 (Starknet) |
-| Package Manager | Scarb 2.8.4 |
-| CLI | Node.js + Commander |
-| Relay Service | Node.js + starknet.js |
-| ZK Circuits | Circom + snarkjs |
-| Deployment | Starkli |
-
----
-
-## 🔐 Security Notes
+## Security Notes
 
 1. **Collateral**: Vaults must maintain ≥150% collateralization
 2. **Confirmations**: 20 Zcash block confirmations required
@@ -276,13 +261,7 @@ zclaim relay sync -s 100 -e 200  # Sync block range
 
 ---
 
-## 📄 License
-
-ISC
-
----
-
-## 🤝 Contributing
+## Contributing
 
 1. Review Cairo contracts in `cairo/src/` (some need fixes)
 2. Implement proper BLAKE2b in Cairo
@@ -291,6 +270,6 @@ ISC
 
 ---
 
-## 📞 Contact
+## Contact
 
 - Repository: [github.com/Arnav-panjla/ztarknet](https://github.com/Arnav-panjla/ztarknet)
