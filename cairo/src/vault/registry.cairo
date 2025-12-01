@@ -3,6 +3,20 @@
 use starknet::ContractAddress;
 use zclaim::vault::types::{Vault, VaultRegistration, BalanceProof, VaultStatus};
 
+/// ERC20 interface for collateral token transfers
+#[starknet::interface]
+pub trait IERC20<TContractState> {
+    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
+    fn transfer_from(
+        ref self: TContractState,
+        sender: ContractAddress,
+        recipient: ContractAddress,
+        amount: u256
+    ) -> bool;
+    fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
+    fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
+}
+
 #[starknet::interface]
 pub trait IVaultRegistry<TContractState> {
     /// Register a new vault
@@ -56,6 +70,8 @@ pub mod VaultRegistry {
         Map, StoragePathEntry
     };
     use zclaim::vault::types::{Vault, VaultRegistration, BalanceProof, VaultStatus, collateral};
+    use super::IERC20DispatcherTrait;
+    use super::IERC20Dispatcher;
 
     #[storage]
     struct Storage {
@@ -75,6 +91,8 @@ pub mod VaultRegistry {
         bridge: ContractAddress,
         /// Owner address
         owner: ContractAddress,
+        /// Collateral token (STRK or other ERC20)
+        collateral_token: ContractAddress,
     }
 
     #[event]
@@ -150,10 +168,12 @@ pub mod VaultRegistry {
         ref self: ContractState,
         owner: ContractAddress,
         oracle: ContractAddress,
+        collateral_token: ContractAddress,
         initial_rate: u256
     ) {
         self.owner.write(owner);
         self.oracle.write(oracle);
+        self.collateral_token.write(collateral_token);
         self.exchange_rate.write(initial_rate);
         self.vault_count.write(0);
     }
@@ -173,8 +193,11 @@ pub mod VaultRegistry {
                 registration.zcash_pkd
             );
             
-            // TODO: Transfer collateral from caller
-            // self._transfer_collateral_in(caller, registration.collateral);
+            // Transfer collateral from caller to this contract
+            let collateral_token = self.collateral_token.read();
+            let this_contract = starknet::get_contract_address();
+            IERC20Dispatcher { contract_address: collateral_token }
+                .transfer_from(caller, this_contract, registration.collateral);
             
             // Create vault
             let vault = Vault {
@@ -211,8 +234,11 @@ pub mod VaultRegistry {
             let status = self.vault_status.entry(caller).read();
             assert(status == VaultStatus::Active, Errors::VAULT_NOT_ACTIVE);
             
-            // TODO: Transfer collateral
-            // self._transfer_collateral_in(caller, amount);
+            // Transfer collateral from caller to this contract
+            let collateral_token = self.collateral_token.read();
+            let this_contract = starknet::get_contract_address();
+            IERC20Dispatcher { contract_address: collateral_token }
+                .transfer_from(caller, this_contract, amount);
             
             let mut vault = self.vaults.entry(caller).read();
             let new_total = vault.collateral + amount;
@@ -238,8 +264,10 @@ pub mod VaultRegistry {
             let required = self._calculate_required_collateral(@vault);
             assert(new_collateral >= required, Errors::CANNOT_WITHDRAW);
             
-            // TODO: Transfer collateral out
-            // self._transfer_collateral_out(caller, amount);
+            // Transfer collateral back to vault owner
+            let collateral_token = self.collateral_token.read();
+            IERC20Dispatcher { contract_address: collateral_token }
+                .transfer(caller, amount);
             
             let mut updated_vault = vault;
             updated_vault.collateral = new_collateral;
