@@ -27,5 +27,6 @@ pub mod bridge {
 
 pub mod crypto {
     pub mod blake2b;
+    pub mod sha256;
     pub mod merkle;
 }
