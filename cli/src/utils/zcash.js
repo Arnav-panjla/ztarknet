@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios';
-import { config } from './config.js';
+import { config } from '../config.js';
 import blake2 from 'blake2';
 
 /**

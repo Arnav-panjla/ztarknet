@@ -4,7 +4,7 @@
  */
 
 import { Account, RpcProvider, Contract, CallData, stark, ec } from 'starknet';
-import { config, getStarknetRpcUrl } from './config.js';
+import { config, getStarknetRpcUrl } from '../config.js';
 
 /**
  * Get RPC Provider
