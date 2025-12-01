@@ -161,17 +161,6 @@ ztarknet/
 
 ## Quick Start
 
-### Prerequisites
-```bash
-# Install Scarb (Cairo package manager)
-curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh
-
-# Install Starkli (Starknet CLI)
-curl https://get.starkli.sh | sh
-starkliup
-
-```
-
 ### Build & Test
 ```bash
 # Run integration tests (builds everything)

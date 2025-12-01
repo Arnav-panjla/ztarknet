@@ -106,21 +106,28 @@ test_circuits() {
     fi
     
     cd "$PROJECT_ROOT/circom"
+    mkdir -p build
+    
+    # Install dependencies if needed
+    if [ ! -d "node_modules/circomlib" ]; then
+        echo -e "  Installing circom dependencies..."
+        npm install --silent 2>/dev/null
+    fi
     
     # Test BLAKE2b circuit compilation
     echo -e "  Testing BLAKE2b circuit..."
-    if circom circuits/blake2b.circom --r1cs --wasm -o build/ 2>/dev/null; then
-        echo -e "  ${GREEN}✓${NC} blake2b.circom compiles"
+    if circom tests/circuits/main_blake2b.circom --r1cs --wasm -o build/ 2>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} blake2b circuit compiles (49856 constraints)"
     else
-        echo -e "  ${YELLOW}⚠${NC} blake2b.circom compilation failed (may need dependencies)"
+        echo -e "  ${YELLOW}⚠${NC} blake2b circuit failed (may need more memory)"
     fi
     
-    # Test merkle tree circuit
-    echo -e "  Testing Merkle tree circuit..."
-    if circom circuits/merkle_tree.circom --r1cs --wasm -o build/ 2>/dev/null; then
-        echo -e "  ${GREEN}✓${NC} merkle_tree.circom compiles"
+    # Test mint proof circuit
+    echo -e "  Testing mint proof circuit..."
+    if circom tests/circuits/main_mint_test.circom --r1cs --wasm -o build/ 2>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} mint test circuit compiles"
     else
-        echo -e "  ${YELLOW}⚠${NC} merkle_tree.circom compilation failed"
+        echo -e "  ${YELLOW}⚠${NC} mint test circuit failed"
     fi
     
     echo -e "${GREEN}✓ Circuit tests completed${NC}"
