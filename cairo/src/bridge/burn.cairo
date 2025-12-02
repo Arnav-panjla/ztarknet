@@ -3,6 +3,11 @@
 
 use starknet::ContractAddress;
 use zclaim::relay::types::BurnTransfer;
+use zclaim::crypto::commitments::{
+    compute_note_commitment, SaplingNote
+};
+use zclaim::crypto::snark::{verify_burn_proof, Groth16Proof, BurnProofInputs};
+use zclaim::crypto::encryption::{derive_shared_secret, verify_decryption_challenge, EncryptedNote};
 
 /// Helper struct for burn transaction verification
 #[derive(Drop, Copy, Serde)]
@@ -23,16 +28,36 @@ pub const MIN_REDEEM_AMOUNT: u256 = 100_000;
 /// Maximum redeem amount (1000 ZEC in zatoshi)
 pub const MAX_REDEEM_AMOUNT: u256 = 100_000_000_000;
 
-/// Verify burn transaction parameters
-pub fn verify_burn_params(transfer: @BurnTransfer) -> BurnVerification {
-    // TODO: Implement proper verification
-    //
-    // Should verify:
-    // 1. Value commitment is properly formed
-    // 2. Requested note commitment is valid
-    // 3. User has proper encryption key
-    // 4. Amount is within limits
+/// Verify burn transaction with full proof
+pub fn verify_burn_proof_full(
+    transfer: @BurnTransfer,
+    proof: @Groth16Proof,
+    user_d: u256,
+    user_pkd: u256
+) -> BurnVerification {
+    // Build proof inputs
+    let inputs = BurnProofInputs {
+        cv: *transfer.cv,
+        requested_note_commitment: *transfer.requested_note_commitment,
+        user_d,
+        user_pkd,
+    };
     
+    // Verify zk-SNARK proof
+    let snark_valid = verify_burn_proof(proof, @inputs);
+    
+    let value = *transfer.cv;
+    
+    BurnVerification {
+        proof_valid: snark_valid,
+        value,
+        vault: *transfer.vault_id,
+        expected_note_commitment: *transfer.requested_note_commitment,
+    }
+}
+
+/// Simple verification without full proof
+pub fn verify_burn_params(transfer: @BurnTransfer) -> BurnVerification {
     let value = *transfer.cv;
     
     BurnVerification {
@@ -48,21 +73,25 @@ pub fn is_valid_redeem_amount(amount: u256) -> bool {
     amount >= MIN_REDEEM_AMOUNT && amount <= MAX_REDEEM_AMOUNT
 }
 
-/// Calculate the expected note address for redeem
+/// Derive the expected note address for redeem
 /// 
 /// The vault should create a note addressed to the user's
 /// diversified address derived from their emk
 pub fn derive_user_note_address(
-    _user_emk: u256,
-    _diversifier: felt252
-) -> (u256, u256) {
-    // TODO: Implement proper derivation
-    //
-    // 1. Parse user's master encryption key
-    // 2. Derive diversified transmission key pk_d
-    // 3. Compute diversified generator g_d
+    user_d: u256,
+    user_pkd: u256,
+    value: u256,
+    rcm: u256
+) -> u256 {
+    // Compute note commitment for user's address
+    let note = SaplingNote {
+        d: user_d,
+        pkd: user_pkd,
+        value,
+        rcm,
+    };
     
-    (0, 0) // (g_d, pk_d) placeholder
+    compute_note_commitment(@note)
 }
 
 /// Encode burn request for off-chain use
@@ -117,6 +146,21 @@ pub fn calculate_slash_amount(
     let penalty = (collateral_value * penalty_rate) / RATE_DENOMINATOR;
     
     collateral_value + penalty
+}
+
+/// Verify vault's encryption challenge
+/// 
+/// If vault proves the encrypted note is malformed, redeem is rejected
+pub fn verify_encryption_challenge(
+    encrypted_note: @EncryptedNote,
+    vault_sk: u256,
+    claimed_note_commitment: u256
+) -> bool {
+    // Derive shared secret vault would compute
+    let shared_secret = derive_shared_secret(*encrypted_note.epk, vault_sk);
+    
+    // Check if decryption challenge is valid
+    verify_decryption_challenge(encrypted_note, shared_secret, claimed_note_commitment)
 }
 
 #[cfg(test)]
