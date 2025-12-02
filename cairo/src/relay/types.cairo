@@ -39,7 +39,7 @@ pub struct MerkleProof {
 }
 
 /// Lock permit issued when user requests to lock ZEC
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct LockPermit {
     /// Unique permit identifier
     pub nonce: u256,

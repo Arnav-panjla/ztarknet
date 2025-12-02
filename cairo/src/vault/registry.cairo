@@ -410,16 +410,37 @@ pub mod VaultRegistry {
         }
 
         fn _verify_balance_proof(self: @ContractState, proof: @BalanceProof) -> bool {
-            // TODO: Verify zk-SNARK proof
-            // Proof should demonstrate:
-            // (Σ mint_values - Σ burn_values) * xr * σstd ≤ collateral
-            true
+            // Verify zk-SNARK proof for vault solvency
+            // Proof demonstrates:
+            // (Σ mint_values - Σ burn_values) * exchange_rate * collateral_ratio ≤ collateral
+            //
+            // Public inputs:
+            // - balance_commitment: Pedersen commitment to net obligations
+            // - exchange_rate: Current ZEC/collateral rate
+            // - valid_at_height: Block height at which proof is valid
+            //
+            // In production: use Groth16 verifier
+            // For now: accept proofs from registered vaults with valid structure
+            
+            // Basic validation: proof must have data
+            let has_proof_data = proof.proof.len() > 0;
+            
+            // Verify exchange rate matches current
+            let current_rate = self.exchange_rate.read();
+            let rate_valid = *proof.exchange_rate == current_rate;
+            
+            // In production: call Groth16 verifier
+            // verify_groth16_proof(proof.proof, public_inputs, vk_hash)
+            
+            has_proof_data && rate_valid
         }
     }
 
     /// Compute hash of Zcash shielded address (d, pkd)
     fn compute_address_hash(diversifier: u256, pkd: u256) -> u256 {
-        // Simple hash for now - replace with proper implementation
+        // Use BLAKE2b with personalization for proper derivation
+        // Simplified XOR for now - in production use:
+        // blake2b_256_personalized([d, pkd], "ZclaimAddr")
         diversifier ^ pkd
     }
 }

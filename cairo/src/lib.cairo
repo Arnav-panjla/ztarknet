@@ -29,4 +29,7 @@ pub mod crypto {
     pub mod blake2b;
     pub mod sha256;
     pub mod merkle;
+    pub mod commitments;
+    pub mod snark;
+    pub mod encryption;
 }
