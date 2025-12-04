@@ -1,11 +1,11 @@
 {
-  "name": "zclaim-cli",
+  "name": "zarklink-cli",
   "version": "0.1.0",
-  "description": "CLI tools for ZCLAIM bridge - Zcash to Starknet",
+  "description": "CLI tools for Zarklink bridge - Zcash to Starknet",
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "zclaim": "./src/index.js"
+    "zarklink": "./src/index.js"
   },
   "scripts": {
     "start": "node src/index.js",
