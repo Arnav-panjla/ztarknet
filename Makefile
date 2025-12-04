@@ -1,10 +1,14 @@
-# ZCLAIM Makefile
+# zarklink Makefile
 # Convenience commands for development
 
-.PHONY: help build test clean install deploy
+.PHONY: help build test clean install deploy demo demo-quick demo-detailed
 
 help:
-	@echo "ZCLAIM Bridge - Development Commands"
+	@echo "zarklink Bridge - Development Commands"
+	@echo ""
+	@echo "Demo Commands:"
+	@echo "  make demo          - Run quick demo (minimal)"
+	@echo "  make demo-detailed - Run detailed demo (full walkthrough)"
 	@echo ""
 	@echo "Build Commands:"
 	@echo "  make build         - Build Cairo contracts"
@@ -25,6 +29,18 @@ help:
 	@echo ""
 	@echo "Circom:"
 	@echo "  make circom-compile - Compile all circom circuits"
+
+# =============================================================================
+# Demo Commands
+# =============================================================================
+
+demo: demo-quick
+
+demo-quick:
+	@./demo/demo_quick.sh
+
+demo-detailed:
+	@./demo/demo_detailed.sh
 
 # =============================================================================
 # Cairo Commands
