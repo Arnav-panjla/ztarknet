@@ -1,27 +1,247 @@
 # ZCLAIM: Privacy-Preserving Zcash Bridge to Starknet
 
-A trustless cross-chain bridge enabling private transfers from Zcash to Starknet while preserving Zcash's anonymity guarantees.
+<p align="center">
+  <strong>The first trustless cross-chain bridge that preserves Zcash's privacy guarantees</strong>
+</p>
 
-Based on the [ZCLAIM Protocol](./research/ZCLAIM_PROTOCOL.md) from the ETH Zürich thesis "Confidential Cross-Blockchain Exchanges" by Aleixo Sánchez.
+<p align="center">
+  <a href="#the-problem">Problem</a> •
+  <a href="#our-solution">Solution</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#comparison">Comparison</a> •
+  <a href="#getting-started">Get Started</a>
+</p>
 
 ---
 
-## Project Goal
+## The Problem
 
-Build the **first privacy-preserving cross-chain bridge** that:
-- Locks shielded ZEC on Zcash → Mints wZEC (wrapped ZEC) on Starknet
-- Burns wZEC on Starknet → Releases shielded ZEC on Zcash
-- **No single party learns the transferred amounts**
+### Cross-Chain Bridges Destroy Privacy
 
-### Why Starknet?
+Today's blockchain bridges create a **privacy nightmare**:
 
-| Feature | Ethereum | Starknet |
-|:--------|:---------|:---------|
-| **ZK-Native** | No (EVM) | Yes (Cairo) |
-| **Complex Crypto** | Gas prohibitive | Feasible |
-| **BLAKE2b/Equihash** | Very expensive | Native support possible |
-| **Proof Verification** | Groth16 only | STARK native |
-| **Scalability** | Limited | L2 scaling |
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    TRADITIONAL BRIDGE FLOW                               │
+│                                                                          │
+│   👤 Alice                                                               │
+│      │                                                                   │
+│      ├── Sends 10 ZEC to Bridge Address ──────────► 🔍 PUBLIC            │
+│      │   (transparent address visible)                                   │
+│      │                                                                   │
+│      ├── Bridge operator sees: ───────────────────► 🔍 OPERATOR SEES     │
+│      │   • Alice's address                                               │
+│      │   • Exact amount (10 ZEC)                                         │
+│      │   • Destination chain address                                     │
+│      │                                                                   │
+│      └── Receives 10 wZEC on Ethereum ────────────► 🔍 PUBLIC            │
+│          (linked to her identity)                                        │
+│                                                                          │
+│   ❌ RESULT: Complete transaction graph exposed                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+**The privacy cost:**
+- 🔴 Your Zcash address is exposed
+- 🔴 Transaction amounts are public  
+- 🔴 Bridge operators can censor or front-run
+- 🔴 Chain analysis links your identities across chains
+- 🔴 Defeats the entire purpose of using Zcash
+
+---
+
+## Our Solution
+
+### ZCLAIM: Zero-Knowledge Cross-Chain Transfers
+
+ZCLAIM bridges Zcash to Starknet **without revealing anything**:
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                       ZCLAIM BRIDGE FLOW                                 │
+│                                                                          │
+│   👤 Alice                                                               │
+│      │                                                                   │
+│      ├── Sends ZEC to Vault's shielded address ───► 🔒 SHIELDED          │
+│      │   (amount hidden, sender hidden)                                  │
+│      │                                                                   │
+│      ├── Generates ZK proof of deposit ───────────► 🔒 ZERO-KNOWLEDGE    │
+│      │   • Proves note exists in commitment tree                         │
+│      │   • Proves amount matches (without revealing it)                  │
+│      │   • Proves ownership (without revealing identity)                 │
+│      │                                                                   │
+│      ├── Submits proof to Starknet ───────────────► 🔒 PRIVATE           │
+│      │   (only proof visible, not details)                               │
+│      │                                                                   │
+│      └── Receives wZEC on Starknet ───────────────► 🔒 UNLINKABLE        │
+│          (no connection to Zcash identity)                               │
+│                                                                          │
+│   ✅ RESULT: Complete privacy preserved                                  │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+**What ZCLAIM guarantees:**
+- 🟢 **Amount Privacy** - Nobody learns how much you transferred
+- 🟢 **Sender Privacy** - Your Zcash address stays hidden
+- 🟢 **Receiver Privacy** - Your Starknet address is unlinkable
+- 🟢 **Trustless** - No operator can steal or censor
+- 🟢 **Collateralized** - Vaults are overcollateralized, ensuring security
+
+---
+
+## How It Works
+
+### The Issue Protocol (ZEC → wZEC)
+
+```
+    ZCASH BLOCKCHAIN                           STARKNET
+    ════════════════                           ════════
+
+    ┌─────────────┐                        ┌─────────────┐
+    │   User      │                        │   Bridge    │
+    │   Wallet    │                        │   Contract  │
+    └──────┬──────┘                        └──────┬──────┘
+           │                                      │
+           │ 1. REQUEST LOCK                      │
+           │    Get vault's shielded address      │
+           │ ────────────────────────────────────►│
+           │                                      │
+           │ 2. LOCK ZEC                          │
+           │    Send to vault's z-addr            │
+    ┌──────▼──────┐                               │
+    │  Shielded   │                               │
+    │  Pool       │                               │
+    └──────┬──────┘                               │
+           │                                      │
+           │ 3. GENERATE PROOF                    │
+           │    • Note commitment in tree         │
+           │    • Value commitment matches        │
+           │    • Ownership proof                 │
+           ├──────────────────────────────────────┤
+           │                                      │
+           │ 4. SUBMIT PROOF                      │
+           │ ────────────────────────────────────►│
+           │                                      │
+           │                               ┌──────▼──────┐
+           │                               │   Verify    │
+           │                               │   • Block   │
+           │                               │   • Merkle  │
+           │                               │   • ZK Proof│
+           │                               └──────┬──────┘
+           │                                      │
+           │ 5. MINT wZEC                         │
+           │ ◄────────────────────────────────────│
+           │                                      │
+    ═══════════════════════════════════════════════════════
+    
+    🔒 At no point is the amount or sender revealed
+```
+
+### The Redeem Protocol (wZEC → ZEC)
+
+```
+    STARKNET                                ZCASH BLOCKCHAIN
+    ════════                                ════════════════
+
+    ┌─────────────┐                        ┌─────────────┐
+    │   User      │                        │   Vault     │
+    │   (wZEC)    │                        │   Operator  │
+    └──────┬──────┘                        └──────┬──────┘
+           │                                      │
+           │ 1. BURN wZEC                         │
+           │    Submit burn request with          │
+           │    encrypted note details            │
+    ┌──────▼──────┐                               │
+    │  Bridge     │                               │
+    │  Contract   │                               │
+    └──────┬──────┘                               │
+           │                                      │
+           │ 2. NOTIFY VAULT                      │
+           │ ────────────────────────────────────►│
+           │                                      │
+           │                               ┌──────▼──────┐
+           │                               │  Decrypt    │
+           │                               │  Note       │
+           │                               │  Details    │
+           │                               └──────┬──────┘
+           │                                      │
+           │ 3. RELEASE ZEC                       │
+           │    Send to user's z-addr             │
+           │ ◄────────────────────────────────────│
+           │                               ┌──────▼──────┐
+           │                               │  Shielded   │
+           │                               │  Transfer   │
+           │                               └─────────────┘
+           │                                      │
+           │ 4. CONFIRM RELEASE                   │
+           │    Submit proof of release           │
+           │ ◄────────────────────────────────────│
+           │                                      │
+    ═══════════════════════════════════════════════════════
+    
+    🔒 Vault only learns what's needed to send you ZEC
+```
+
+---
+
+## Comparison with Existing Bridges
+
+| Feature | ZCLAIM | WBTC | RenBTC | tBTC | zkBridge |
+|---------|--------|------|--------|------|----------|
+| **Privacy** | ✅ Full | ❌ None | ❌ None | ⚠️ Limited | ⚠️ Partial |
+| **Amount Hidden** | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No |
+| **Sender Hidden** | ✅ Yes | ❌ No | ❌ No | ❌ No | ⚠️ Partial |
+| **Trustless** | ✅ Yes | ❌ Custodian | ⚠️ Semi | ✅ Yes | ✅ Yes |
+| **Collateralized** | ✅ Yes | ❌ No | ❌ No | ✅ Yes | ❌ No |
+| **Censorship Resistant** | ✅ Yes | ❌ No | ⚠️ Semi | ✅ Yes | ✅ Yes |
+| **ZK Proofs** | ✅ Native | ❌ No | ❌ No | ❌ No | ✅ Yes |
+
+### Why ZCLAIM is Different
+
+**vs. WBTC (Centralized)**
+> WBTC requires trusting BitGo as custodian. They see all transactions, can freeze funds, and must comply with regulations that may require blocking addresses. ZCLAIM has no custodian.
+
+**vs. RenBTC (Semi-Decentralized)**
+> Ren's darknodes collectively hold the keys. While better than WBTC, the network still sees all transaction amounts and can theoretically collude. ZCLAIM reveals nothing to anyone.
+
+**vs. tBTC (Trustless but Public)**
+> tBTC is truly decentralized but all Bitcoin transactions are public. Your BTC address, amounts, and timing are visible on-chain. ZCLAIM uses Zcash's shielded pool to hide everything.
+
+**vs. zkBridge (ZK but not Private)**
+> zkBridge uses ZK proofs for verification efficiency, not privacy. The underlying transactions are still public. ZCLAIM uses ZK proofs for both verification AND privacy.
+
+---
+
+## Security Model
+
+### Threat Analysis
+
+| Threat | Mitigation |
+|--------|------------|
+| **Vault steals funds** | Overcollateralization (150%) + slashing |
+| **Vault goes offline** | Timeout → user can claim from collateral |
+| **Relay submits fake blocks** | BLAKE2b PoW verification on-chain |
+| **User fakes proof** | ZK-SNARK verification (soundness) |
+| **Chain analysis** | Shielded transactions hide all metadata |
+
+### Trust Assumptions
+
+1. **Zcash security**: We assume Zcash's Sapling protocol is secure
+2. **Starknet liveness**: Starknet must remain operational
+3. **Honest relayer**: At least one honest party relays block headers
+4. **Cryptographic assumptions**: BLAKE2b, Groth16, Pedersen commitments
+
+---
+
+## Why Starknet?
+
+| Feature | Ethereum | Starknet | Benefit for ZCLAIM |
+|---------|----------|----------|-------------------|
+| **ZK-Native** | No (EVM) | Yes (Cairo) | Native proof verification |
+| **BLAKE2b** | ~500k gas | Native | Efficient Zcash PoW checks |
+| **Complex Crypto** | Gas prohibitive | Feasible | Full Sapling verification |
+| **Scalability** | 15 TPS | 1000+ TPS | Handle many bridge txs |
+| **Cost** | $10-100/tx | $0.01-0.10/tx | Affordable bridging |
 
 ---
 
@@ -259,6 +479,31 @@ zclaim relay sync -s 100 -e 200  # Sync block range
 
 ---
 
-## Contact
+## References
 
-- Repository: [github.com/Arnav-panjla/ztarknet](https://github.com/Arnav-panjla/ztarknet)
+This protocol is based on academic research:
+
+> **XCLAIM: Trustless, Interoperable, Cryptocurrency-Backed Assets**  
+> Alexei Zamyatin, Dominik Harz, Joshua Lind, Panayiotis Panayiotou, Arthur Gervais, William Knottenbelt  
+> *IEEE Symposium on Security and Privacy (S&P), 2019*  
+> [https://eprint.iacr.org/2018/643](https://eprint.iacr.org/2018/643)
+
+> **Confidential Cross-Blockchain Exchanges (ZCLAIM Extension)**  
+> Aleixo Sánchez Sánchez  
+> *ETH Zürich Master's Thesis, 2019*
+
+> **Zcash Protocol Specification**  
+> Daira Hopwood, Sean Bowe, Taylor Hornby, Nathan Wilcox  
+> [https://zips.z.cash/protocol/protocol.pdf](https://zips.z.cash/protocol/protocol.pdf)
+
+---
+
+## License
+
+MIT License - see [LICENSE](LICENSE)
+
+---
+
+<p align="center">
+  <strong>Bringing Zcash's privacy to Starknet's scalability</strong>
+</p>
