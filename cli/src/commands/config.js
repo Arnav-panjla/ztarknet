@@ -10,8 +10,22 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { config, defaultConfig } from '../config.js';
+import {
+  printHeader,
+  printSection,
+  printBox,
+  success,
+  error,
+  warning,
+  info,
+  step,
+  createSpinner,
+  typingEffect,
+  formatAddress,
+  COLORS
+} from '../utils/ui.js';
 
-const CONFIG_DIR = join(homedir(), '.zclaim');
+const CONFIG_DIR = join(homedir(), '.zarklink');
 const CONFIG_PATH = join(CONFIG_DIR, 'config.json');
 
 export const configCommand = new Command('config')
@@ -24,57 +38,64 @@ configCommand
   .command('init')
   .description('Initialize configuration interactively')
   .action(async () => {
-    console.log(chalk.cyan('\n═══ ZCLAIM CLI Configuration ═══\n'));
+    printHeader('CONFIGURATION', 'Setup your zarklink CLI');
+    
+    console.log('');
+    info('Answer the following questions to configure your CLI.');
+    console.log('');
     
     const answers = await inquirer.prompt([
       {
         type: 'list',
         name: 'starknetNetwork',
-        message: 'Starknet network:',
+        message: chalk.hex(COLORS.primary)('Starknet network:'),
         choices: ['sepolia', 'mainnet', 'devnet'],
         default: 'sepolia',
       },
       {
         type: 'input',
         name: 'starknetRpc',
-        message: 'Starknet RPC URL (press enter for default):',
+        message: chalk.hex(COLORS.primary)('Starknet RPC URL (enter for default):'),
         default: '',
       },
       {
         type: 'input',
         name: 'accountAddress',
-        message: 'Starknet account address:',
-        validate: (v) => !v || v.startsWith('0x') ? true : 'Invalid address',
+        message: chalk.hex(COLORS.primary)('Starknet account address:'),
+        validate: (v) => !v || v.startsWith('0x') ? true : 'Invalid address (must start with 0x)',
       },
       {
         type: 'password',
         name: 'privateKey',
-        message: 'Starknet private key:',
+        message: chalk.hex(COLORS.primary)('Starknet private key:'),
       },
       {
         type: 'list',
         name: 'zcashNetwork',
-        message: 'Zcash network:',
+        message: chalk.hex(COLORS.primary)('Zcash network:'),
         choices: ['testnet', 'mainnet'],
         default: 'testnet',
       },
       {
         type: 'input',
         name: 'zcashRpc',
-        message: 'Zcash RPC URL:',
+        message: chalk.hex(COLORS.primary)('Zcash RPC URL:'),
         default: 'http://127.0.0.1:8232',
       },
       {
         type: 'input',
         name: 'zcashUser',
-        message: 'Zcash RPC username (optional):',
+        message: chalk.hex(COLORS.dim)('Zcash RPC username (optional):'),
       },
       {
         type: 'password',
         name: 'zcashPassword',
-        message: 'Zcash RPC password (optional):',
+        message: chalk.hex(COLORS.dim)('Zcash RPC password (optional):'),
       },
     ]);
+    
+    const spinner = createSpinner('Saving configuration...');
+    spinner.start();
     
     const newConfig = {
       ...defaultConfig,
@@ -99,8 +120,20 @@ configCommand
     
     writeFileSync(CONFIG_PATH, JSON.stringify(newConfig, null, 2));
     
-    console.log(chalk.green('\n✓ Configuration saved to ~/.zclaim/config.json'));
-    console.log(chalk.gray('  Use `zclaim config show` to view current settings'));
+    await new Promise(r => setTimeout(r, 500));
+    spinner.stop();
+    
+    console.log('');
+    success('Configuration saved successfully!');
+    console.log('');
+    
+    printBox('Config Location', [
+      `${chalk.gray('File:')} ${chalk.hex(COLORS.highlight)('~/.zarklink/config.json')}`,
+    ]);
+    
+    console.log('');
+    info(`View settings: ${chalk.hex(COLORS.primary)('zarklink config show')}`);
+    console.log('');
   });
 
 /**
@@ -111,30 +144,45 @@ configCommand
   .description('Show current configuration')
   .option('--reveal', 'Show sensitive values')
   .action((options) => {
-    console.log(chalk.cyan('\n═══ Current Configuration ═══\n'));
+    printHeader('CURRENT CONFIG', 'Your zarklink settings');
     
-    console.log(chalk.white('Starknet:'));
-    console.log(`  Network:       ${config.starknet.network}`);
-    console.log(`  RPC URL:       ${config.starknet.rpcUrl || '(default)'}`);
-    console.log(`  Account:       ${config.starknet.accountAddress || '(not set)'}`);
-    console.log(`  Private Key:   ${options.reveal ? config.starknet.privateKey : '(hidden)'}`);
+    // Starknet Section
+    printSection('Starknet');
+    printBox('Connection', [
+      `${chalk.gray('Network:')}      ${chalk.hex(COLORS.highlight)(config.starknet?.network || 'sepolia')}`,
+      `${chalk.gray('RPC URL:')}      ${chalk.white(config.starknet?.rpcUrl || '(default)')}`,
+      `${chalk.gray('Account:')}      ${config.starknet?.accountAddress ? formatAddress(config.starknet.accountAddress) : chalk.gray('(not set)')}`,
+      `${chalk.gray('Private Key:')}  ${options.reveal && config.starknet?.privateKey ? chalk.hex(COLORS.warning)(config.starknet.privateKey.substring(0, 20) + '...') : chalk.gray('(hidden)')}`,
+    ]);
+    console.log('');
     
-    console.log(chalk.white('\nContracts:'));
-    console.log(`  Bridge:        ${config.contracts.bridge || '(not set)'}`);
-    console.log(`  Relay:         ${config.contracts.relay || '(not set)'}`);
-    console.log(`  Token:         ${config.contracts.token || '(not set)'}`);
-    console.log(`  Registry:      ${config.contracts.registry || '(not set)'}`);
+    // Contracts Section
+    printSection('Contracts');
+    printBox('Deployed Addresses', [
+      `${chalk.gray('Bridge:')}    ${config.contracts?.bridge ? formatAddress(config.contracts.bridge) : chalk.gray('(not set)')}`,
+      `${chalk.gray('Relay:')}     ${config.contracts?.relay ? formatAddress(config.contracts.relay) : chalk.gray('(not set)')}`,
+      `${chalk.gray('Token:')}     ${config.contracts?.token ? formatAddress(config.contracts.token) : chalk.gray('(not set)')}`,
+      `${chalk.gray('Registry:')}  ${config.contracts?.registry ? formatAddress(config.contracts.registry) : chalk.gray('(not set)')}`,
+    ]);
+    console.log('');
     
-    console.log(chalk.white('\nZcash:'));
-    console.log(`  Network:       ${config.zcash.network}`);
-    console.log(`  RPC URL:       ${config.zcash.rpcUrl}`);
-    console.log(`  RPC User:      ${config.zcash.rpcUser || '(not set)'}`);
+    // Zcash Section
+    printSection('Zcash');
+    printBox('RPC Settings', [
+      `${chalk.gray('Network:')}   ${chalk.hex(COLORS.highlight)(config.zcash?.network || 'testnet')}`,
+      `${chalk.gray('RPC URL:')}   ${chalk.white(config.zcash?.rpcUrl || 'http://127.0.0.1:8232')}`,
+      `${chalk.gray('RPC User:')}  ${config.zcash?.rpcUser || chalk.gray('(not set)')}`,
+    ]);
+    console.log('');
     
-    console.log(chalk.white('\nBridge Settings:'));
-    console.log(`  Confirmations: ${config.bridge.minConfirmations}`);
-    console.log(`  Issue Timeout: ${config.bridge.issueTimeout}s`);
-    console.log(`  Redeem Timeout: ${config.bridge.redeemTimeout}s`);
-    console.log(`  Fee Rate:      ${config.bridge.feeRate / 100}%`);
+    // Bridge Settings Section
+    printSection('Bridge Settings');
+    printBox('Protocol Parameters', [
+      `${chalk.gray('Confirmations:')}  ${chalk.hex(COLORS.highlight)(config.bridge?.minConfirmations || 20)}`,
+      `${chalk.gray('Issue Timeout:')}  ${chalk.hex(COLORS.highlight)((config.bridge?.issueTimeout || 86400) + 's')}`,
+      `${chalk.gray('Redeem Timeout:')} ${chalk.hex(COLORS.highlight)((config.bridge?.redeemTimeout || 86400) + 's')}`,
+      `${chalk.gray('Fee Rate:')}       ${chalk.hex(COLORS.highlight)(((config.bridge?.feeRate || 10) / 100) + '%')}`,
+    ]);
     console.log('');
   });
 
@@ -147,6 +195,11 @@ configCommand
   .argument('<key>', 'Configuration key (e.g., starknet.network)')
   .argument('<value>', 'Configuration value')
   .action((key, value) => {
+    printHeader('SET CONFIG', `${key}`);
+    
+    const spinner = createSpinner('Updating configuration...');
+    spinner.start();
+    
     // Load existing config
     let currentConfig = { ...defaultConfig };
     if (existsSync(CONFIG_PATH)) {
@@ -170,7 +223,16 @@ configCommand
     }
     writeFileSync(CONFIG_PATH, JSON.stringify(currentConfig, null, 2));
     
-    console.log(chalk.green(`✓ Set ${key} = ${value}`));
+    spinner.stop();
+    
+    success(`Configuration updated!`);
+    console.log('');
+    
+    printBox('Change Applied', [
+      `${chalk.gray('Key:')}   ${chalk.hex(COLORS.highlight)(key)}`,
+      `${chalk.gray('Value:')} ${chalk.hex(COLORS.success)(value)}`,
+    ]);
+    console.log('');
   });
 
 /**
@@ -184,6 +246,11 @@ configCommand
   .option('--token <address>', 'Token contract address')
   .option('--registry <address>', 'Registry contract address')
   .action((options) => {
+    printHeader('SET CONTRACTS', 'Update contract addresses');
+    
+    const spinner = createSpinner('Updating contract addresses...');
+    spinner.start();
+    
     // Load existing config
     let currentConfig = { ...defaultConfig };
     if (existsSync(CONFIG_PATH)) {
@@ -194,10 +261,23 @@ configCommand
       currentConfig.contracts = {};
     }
     
-    if (options.bridge) currentConfig.contracts.bridge = options.bridge;
-    if (options.relay) currentConfig.contracts.relay = options.relay;
-    if (options.token) currentConfig.contracts.token = options.token;
-    if (options.registry) currentConfig.contracts.registry = options.registry;
+    const updates = [];
+    if (options.bridge) {
+      currentConfig.contracts.bridge = options.bridge;
+      updates.push(`${chalk.gray('Bridge:')}   ${formatAddress(options.bridge)}`);
+    }
+    if (options.relay) {
+      currentConfig.contracts.relay = options.relay;
+      updates.push(`${chalk.gray('Relay:')}    ${formatAddress(options.relay)}`);
+    }
+    if (options.token) {
+      currentConfig.contracts.token = options.token;
+      updates.push(`${chalk.gray('Token:')}    ${formatAddress(options.token)}`);
+    }
+    if (options.registry) {
+      currentConfig.contracts.registry = options.registry;
+      updates.push(`${chalk.gray('Registry:')} ${formatAddress(options.registry)}`);
+    }
     
     // Save
     if (!existsSync(CONFIG_DIR)) {
@@ -205,7 +285,18 @@ configCommand
     }
     writeFileSync(CONFIG_PATH, JSON.stringify(currentConfig, null, 2));
     
-    console.log(chalk.green('✓ Contract addresses updated'));
+    spinner.stop();
+    
+    if (updates.length > 0) {
+      success('Contract addresses updated!');
+      console.log('');
+      printBox('Updated Contracts', updates);
+    } else {
+      warning('No contract addresses provided.');
+      console.log('');
+      info('Usage: zarklink config contracts --bridge <addr> --relay <addr>');
+    }
+    console.log('');
   });
 
 export default configCommand;
