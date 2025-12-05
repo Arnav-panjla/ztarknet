@@ -233,51 +233,6 @@ ZCLAIM bridges Zcash to Starknet **without revealing anything**:
 
 ---
 
-## Why Starknet?
-
-| Feature | Ethereum | Starknet | Benefit for ZCLAIM |
-|---------|----------|----------|-------------------|
-| **ZK-Native** | No (EVM) | Yes (Cairo) | Native proof verification |
-| **BLAKE2b** | ~500k gas | Native | Efficient Zcash PoW checks |
-| **Complex Crypto** | Gas prohibitive | Feasible | Full Sapling verification |
-| **Scalability** | 15 TPS | 1000+ TPS | Handle many bridge txs |
-| **Cost** | $10-100/tx | $0.01-0.10/tx | Affordable bridging |
-
----
-
-## Implementation Status
-
-### Phase 1: Core Infrastructure 
-- [x] BLAKE2b circuit (for Zcash PoW verification)
-- [x] SHA256d circuit (for Merkle trees)
-- [x] Merkle tree verification circuit
-- [x] Zcash transaction hash verification (ZIP-244)
-- [x] ZCLAIM mint/burn proof circuits
-
-### Phase 2: Starknet Contracts 
-- [x] Cairo project with Scarb
-- [x] wZEC token contract (ERC20)
-- [x] Relay system (block header storage)
-- [x] Vault registry (collateral management)
-- [x] Bridge contracts (zclaim, mint, burn)https://github.com/Arnav-panjla/ztarknet
-- [x] Crypto primitives (blake2b, merkle - placeholders)
-
-> Some Cairo modules need manual review for Cairo 2.8 compatibility
-
-### Phase 3: CLI & Services 
-- [x] `zclaim` CLI (relay, issue, redeem, vault, config, status)
-- [x] Relay service (Node.js daemon)
-- [x] Deployment scripts
-
-### Phase 4: Testing & Deployment 
-- [x] Integration test script
-- [ ] Unit tests for Cairo contracts
-- [ ] End-to-end testing
-- [ ] Testnet deployment
-
-> **Note:** This project focuses on the **terminal/CLI version only**. No UI/UX frontend is planned.
-
----
 
 ## Architecture
 
