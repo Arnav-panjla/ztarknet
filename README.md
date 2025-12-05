@@ -259,7 +259,7 @@ ZCLAIM bridges Zcash to Starknet **without revealing anything**:
 - [x] wZEC token contract (ERC20)
 - [x] Relay system (block header storage)
 - [x] Vault registry (collateral management)
-- [x] Bridge contracts (zclaim, mint, burn)
+- [x] Bridge contracts (zclaim, mint, burn)https://github.com/Arnav-panjla/ztarknet
 - [x] Crypto primitives (blake2b, merkle - placeholders)
 
 > Some Cairo modules need manual review for Cairo 2.8 compatibility
