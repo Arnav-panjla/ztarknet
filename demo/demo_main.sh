@@ -1,6 +1,6 @@
 #!/bin/bash
-# zarklink Bridge Demo Script
-# Interactive CLI demo for the zarklink Zcash-Starknet Bridge
+# zarkclaim Bridge Demo Script
+# Interactive CLI demo for the zarkclaim Zcash-Starknet Bridge
 
 set -e
 
@@ -27,12 +27,12 @@ print_header() {
     echo -e "${CYAN}"
     echo "╔══════════════════════════════════════════════════════════════════════════════╗"
     echo "║                                                                              ║"
-    echo "║    ███████╗ █████╗ ██████╗ ██╗  ██╗██╗     ██╗███╗   ██╗██╗  ██╗             ║"
-    echo "║    ╚══███╔╝██╔══██╗██╔══██╗██║ ██╔╝██║     ██║████╗  ██║██║ ██╔╝             ║"
-    echo "║      ███╔╝ ███████║██████╔╝█████╔╝ ██║     ██║██╔██╗ ██║█████╔╝              ║"
-    echo "║     ███╔╝  ██╔══██║██╔══██╗██╔═██╗ ██║     ██║██║╚██╗██║██╔═██╗              ║"
-    echo "║    ███████╗██║  ██║██║  ██║██║  ██╗███████╗██║██║ ╚████║██║  ██╗             ║"
-    echo "║    ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝             ║"
+    echo "║  ███████╗ █████╗ ██████╗ ██╗  ██╗ ██████╗██╗      █████╗ ██╗███╗   ███╗     ║"
+    echo "║  ╚══███╔╝██╔══██╗██╔══██╗██║ ██╔╝██╔════╝██║     ██╔══██╗██║████╗ ████║     ║"
+    echo "║    ███╔╝ ███████║██████╔╝█████╔╝ ██║     ██║     ███████║██║██╔████╔██║     ║"
+    echo "║   ███╔╝  ██╔══██║██╔══██╗██╔═██╗ ██║     ██║     ██╔══██║██║██║╚██╔╝██║     ║"
+    echo "║  ███████╗██║  ██║██║  ██║██║  ██╗╚██████╗███████╗██║  ██║██║██║ ╚═╝ ██║     ║"
+    echo "║  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚══════╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝     ║"
     echo "║                                                                              ║"
     echo "║           Privacy-Preserving Zcash Bridge to Starknet                        ║"
     echo "║                                                                              ║"
@@ -82,9 +82,9 @@ wait_for_enter() {
 # Demo sections
 demo_intro() {
     print_header
-    print_section "Welcome to zarklink Demo"
+    print_section "Welcome to zarkclaim Demo"
     
-    typing_effect "zarklink is a privacy-preserving bridge between Zcash and Starknet."
+    typing_effect "zarkclaim is a privacy-preserving bridge between Zcash and Starknet."
     echo ""
     typing_effect "It allows users to:"
     echo -e "  ${GREEN}•${NC} Lock shielded ZEC on Zcash"
@@ -111,7 +111,7 @@ demo_contracts() {
     echo -e "  ${CYAN}Vault Registry:${NC}"
     echo -e "    ${VAULT_ADDRESS}"
     echo ""
-    echo -e "  ${CYAN}zarklink Bridge:${NC}"
+    echo -e "  ${CYAN}zarkclaim Bridge:${NC}"
     echo -e "    ${BRIDGE_ADDRESS}"
     echo ""
     
@@ -225,7 +225,7 @@ demo_vault_registry() {
 
 demo_bridge() {
     print_header
-    print_section "4. zarklink Bridge Contract"
+    print_section "4. zarkclaim Bridge Contract"
     
     print_info "The main bridge contract coordinates Issue and Redeem protocols."
     echo ""
@@ -261,7 +261,7 @@ demo_privacy() {
     print_header
     print_section "5. Privacy Guarantees"
     
-    echo -e "${BOLD}What zarklink Hides:${NC}"
+    echo -e "${BOLD}What zarkclaim Hides:${NC}"
     echo ""
     echo -e "  ${GREEN}✓${NC} Transaction amounts (hidden in value commitments)"
     echo -e "  ${GREEN}✓${NC} Sender address on Zcash (shielded pool)"
@@ -299,7 +299,7 @@ demo_flow_diagram() {
     ═══════════════                              ════════
     
     ┌─────────────┐    1. Request Lock          ┌─────────────┐
-    │             │ ─────────────────────────►  │  zarklink   │
+    │             │ ─────────────────────────►  │  zarkclaim  │
     │    USER     │                             │   Bridge    │
     │             │    2. Get Vault z-addr      │             │
     │             │ ◄─────────────────────────  └─────────────┘
@@ -347,7 +347,7 @@ demo_explorer_links() {
     echo -e "  ${CYAN}Vault Registry:${NC}"
     echo -e "  https://sepolia.voyager.online/contract/${VAULT_ADDRESS}"
     echo ""
-    echo -e "  ${CYAN}zarklink Bridge:${NC}"
+    echo -e "  ${CYAN}zarkclaim Bridge:${NC}"
     echo -e "  https://sepolia.voyager.online/contract/${BRIDGE_ADDRESS}"
     echo ""
 
@@ -364,7 +364,7 @@ demo_conclusion() {
     
     echo -e "${BOLD}Summary:${NC}"
     echo ""
-    echo -e "  ${GREEN}✓${NC} zarklink bridges Zcash to Starknet privately"
+    echo -e "  ${GREEN}✓${NC} zarkclaim bridges Zcash to Starknet privately"
     echo -e "  ${GREEN}✓${NC} Uses ZK proofs to verify without revealing"
     echo -e "  ${GREEN}✓${NC} Trustless with collateralized vaults"
     echo -e "  ${GREEN}✓${NC} All contracts deployed on Sepolia"
@@ -375,7 +375,7 @@ demo_conclusion() {
     echo -e "  ${CYAN}•${NC} Repository: https://github.com/Arnav-panjla/ztarknet"
     echo ""
     
-    echo -e "${YELLOW}Thank you for watching the zarklink demo!${NC}"
+    echo -e "${YELLOW}Thank you for watching the zarkclaim demo!${NC}"
     echo ""
 }
 
