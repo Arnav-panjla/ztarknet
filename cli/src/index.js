@@ -12,6 +12,7 @@ import { redeemCommand } from './commands/redeem.js';
 import { vaultCommand } from './commands/vault.js';
 import { configCommand } from './commands/config.js';
 import { statusCommand } from './commands/status.js';
+import { testnetCommand } from './commands/testnet.js';
 import { LOGO, LOGO_SMALL, bullet, info } from './utils/ui.js';
 
 const program = new Command();
@@ -28,6 +29,7 @@ program.addCommand(redeemCommand);
 program.addCommand(vaultCommand);
 program.addCommand(configCommand);
 program.addCommand(statusCommand);
+program.addCommand(testnetCommand);
 
 // Default action
 program.action(() => {
@@ -40,6 +42,7 @@ program.action(() => {
   console.log(`    ${chalk.cyan('relay')}    ${chalk.dim('─')} Manage block header relay`);
   console.log(`    ${chalk.cyan('vault')}    ${chalk.dim('─')} Vault operations`);
   console.log(`    ${chalk.cyan('status')}   ${chalk.dim('─')} Bridge & transaction status`);
+  console.log(`    ${chalk.cyan('testnet')}  ${chalk.dim('─')} Zcash testnet utilities`);
   console.log(`    ${chalk.cyan('config')}   ${chalk.dim('─')} Configure settings`);
   console.log('');
   console.log(chalk.dim('  Run `zarklink <command> --help` for more information\n'));

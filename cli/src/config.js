@@ -1,6 +1,8 @@
 /**
  * zarklink CLI Configuration
  * Loads environment variables and provides configuration
+ * 
+ * NOTE: Local zcashd is OPTIONAL. The CLI works with public APIs.
  */
 
 import dotenv from 'dotenv';
@@ -16,6 +18,9 @@ const CONFIG_PATH = join(homedir(), '.zarklink', 'config.json');
 
 /**
  * Default configuration
+ * 
+ * Zcash: Uses public APIs by default (no local node required)
+ * Starknet: Uses Sepolia testnet with deployed contracts
  */
 const defaultConfig = {
   // Starknet settings
@@ -26,7 +31,7 @@ const defaultConfig = {
     privateKey: process.env.STARKNET_PRIVATE_KEY || '',
   },
   
-  // Contract addresses (Starknet Sepolia)
+  // Contract addresses (Starknet Sepolia - already deployed)
   contracts: {
     bridge: process.env.BRIDGE_ADDRESS || '0x069d135c173847a356aa29a182ace00981e9793aea5bb62bfc6c1d4577e9c36e',
     relay: process.env.RELAY_ADDRESS || '0x01ae3dce889773db25632ebed4a04698fb2dff1c71b2101f00e8c0f34b5d7e4b',
@@ -35,11 +40,15 @@ const defaultConfig = {
   },
   
   // Zcash settings
+  // NOTE: rpcUrl is OPTIONAL - public APIs are used by default
   zcash: {
     network: process.env.ZCASH_NETWORK || 'testnet',
-    rpcUrl: process.env.ZCASH_RPC_URL || 'http://127.0.0.1:8232',
+    // Optional: Only needed if you want to use a local zcashd node
+    rpcUrl: process.env.ZCASH_RPC_URL || null,
     rpcUser: process.env.ZCASH_RPC_USER || '',
     rpcPassword: process.env.ZCASH_RPC_PASSWORD || '',
+    // Public API settings
+    usePublicApi: process.env.ZCASH_USE_PUBLIC_API !== 'false', // Default true
   },
   
   // Bridge settings

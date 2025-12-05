@@ -25,7 +25,60 @@ zarklink [command] [options]
 | `redeem` | Burn wZEC and unlock ZEC (Redeem protocol) |
 | `vault` | Manage vault operations |
 | `relay` | Manage Zcash block header relay |
+| `testnet` | Zcash testnet setup and utilities |
 | `config` | Configure CLI settings |
+
+## Zcash Testnet Setup
+
+The CLI supports Zcash testnet for development and testing with TAZ (testnet coins).
+
+### Quick Setup
+
+```bash
+# Generate testnet configuration
+zarklink testnet setup
+
+# Check testnet status
+zarklink testnet status
+
+# Get testnet faucet info
+zarklink testnet faucet
+
+# View testnet vs mainnet info
+zarklink testnet info
+```
+
+### Testnet Configuration
+
+```bash
+# Configure CLI for testnet
+zarklink config set zcash.network testnet
+zarklink config set zcash.rpcUrl http://127.0.0.1:18232
+zarklink config set zcash.rpcUser zcashrpc
+zarklink config set zcash.rpcPassword <your-password>
+```
+
+### Testnet Commands
+
+```bash
+# Validate a testnet address
+zarklink testnet validate <address>
+
+# Look up transaction/block in explorer
+zarklink testnet explorer tx <txid>
+zarklink testnet explorer block <hash-or-height>
+zarklink testnet explorer address <address>
+
+# Check transaction confirmations
+zarklink testnet confirm <txid> -c 20
+```
+
+### Getting Testnet Coins (TAZ)
+
+1. Generate a testnet address: `zcash-cli getnewaddress`
+2. Visit the faucet: https://faucet.zecpages.com/
+3. Enter your testnet address and complete the captcha
+4. Wait for confirmation (~2.5 minutes per block)
 
 ### Status Commands
 
